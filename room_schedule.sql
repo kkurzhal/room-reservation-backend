@@ -1,0 +1,50 @@
+DROP DATABASE IF EXISTS room_schedule;
+CREATE DATABASE room_schedule;
+USE room_schedule;
+
+CREATE TABLE requests
+(
+	id INT(11) AUTO_INCREMENT PRIMARY KEY,
+	first_name VARCHAR(255) NOT NULL,
+	last_name VARCHAR(255) NOT NULL,
+	email VARCHAR(255) NOT NULL,
+	date DATE NOT NULL,
+	from_time TIME NOT NULL,
+	to_time TIME NOT NULL,
+	time_stamp DATE NOT NULL,
+	approved TINYINT(1)
+)ENGINE=InnoDB;
+
+
+CREATE TABLE users
+(
+	id INT(11) AUTO_INCREMENT PRIMARY KEY,
+	first_name VARCHAR(255) NOT NULL,
+	last_name VARCHAR(255) NOT NULL,
+	email VARCHAR(255) NOT NULL
+)ENGINE=InnoDB;
+
+CREATE TABLE room_types
+(
+	id INT(11) AUTO_INCREMENT PRIMARY KEY,
+	type VARCHAR(255)
+)ENGINE=InnoDB;
+
+
+CREATE TABLE buildings
+(
+	id INT(11) AUTO_INCREMENT PRIMARY KEY,
+	name VARCHAR(255)
+)ENGINE=InnoDB;
+
+
+CREATE TABLE rooms
+(
+	id INT(11) AUTO_INCREMENT PRIMARY KEY,
+	`number` VARCHAR(5) NOT NULL,
+	capacity INT(11) NOT NULL,
+	`type` INT(11) NOT NULL,
+	building INT(11) NOT NULL,
+	FOREIGN KEY(`type`) REFERENCES room_types(id),
+	FOREIGN KEY(building) REFERENCES buildings(id)
+)ENGINE=InnoDB;
