@@ -8,10 +8,10 @@ CREATE TABLE requests
 	first_name VARCHAR(255) NOT NULL,
 	last_name VARCHAR(255) NOT NULL,
 	email VARCHAR(255) NOT NULL,
-	date DATE NOT NULL,
+	`date` DATE NOT NULL,
 	from_time TIME NOT NULL,
 	to_time TIME NOT NULL,
-	time_stamp DATE NOT NULL,
+	time_stamp DATETIME NOT NULL,
 	approved TINYINT(1)
 )ENGINE=InnoDB;
 
