@@ -5,7 +5,7 @@ var fs = require('fs');
 //using the mysql client noted at https://github.com/felixge/node-mysql.
 //var mysql = require('mysql');
 //var sql = 'INSERT INTO <table-name> (<columns>) VALUES (<values>)';
-var fileData = fs.readFileSync('Room_Schedule.csv','utf8').split('\n');
+var fileData = fs.readFileSync('Room_Schedule.csv','utf8').replace(/\r/g, '').split('\n');
 var errorFile = fs.openSync('error.txt', 'w');
 
 
