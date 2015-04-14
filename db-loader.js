@@ -12,7 +12,7 @@ var errorFile = fs.openSync('error.txt', 'w');
 //set up the beginning dates
 var start_date = new Date('4/1/15');
 var end_date = new Date('4/30/15');
-var next_day = Date(start_date.getDate());
+var each_day = new Date(start_date);
 
 //set up the weekday characters; the index matches the weekday int returned by Date.getDay()
 var weekdays = ['S', 'M', 'T', 'W', 'R', 'F', 'S'];
@@ -45,17 +45,16 @@ for(line in fileData)
 				{
 					building: line_array[0],
 					room: line_array[1],
-					first_name: line_array[5],
-					last_name: line_array[6],
-					start_time: line_array[12],
-					stop_time: line_array[13],
+					firstName: line_array[5],
+					lastName: line_array[6],
+					startTime: line_array[12],
+					stopTime: line_array[13],
 					day: line_array[index]
 				};
 
 				var duplicate = false;
 				for(var r_index = requests_arr.length - 1; r_index >= 0; --r_index)
 				{
-					//if(requests_arr[r_index].building === new_request.building && requests_arr[r_index].room === new_request.room && requests_arr[r_index].first_name === new_request.first_name && requests_arr[r_index].last_name === new_request.last_name && requests_arr[r_index].start_time === new_request.start_time && requests_arr[r_index].stop_time === new_request.stop_time && requests_arr[r_index].day === new_request.day)
 					if(JSON.stringify(new_request) === JSON.stringify(requests_arr[r_index]))
 					{
 						duplicate = true;
@@ -87,6 +86,63 @@ for(line in fileData)
 	}
 }
 
+var final_requests = [];
+
+//get data to determine room types
+fileData = fs.readFileSync('room_types.csv','utf8').replace(/\r/g, '').split('\n');
+fileData.shift();
+var types = [];
+for(index in fileData)
+{
+	types.push(fileData[index].split(','));
+}
+
+
+//get the proper dates for each request
+//we have to do this funky check because there are no dates that can be equal
+while(!(each_day > end_date))
+{
+	var day = each_day.getDay();
+	//continue to add the date only if the current day is not Saturday or Sunday
+	if(day != 0 && day != 6)
+	{
+		//loop through each request
+		for(index in requests_arr)
+		{
+			var request = requests_arr[index];
+			if(request.day == weekdays[day])
+			{
+				var new_request = 
+				{
+					building: request.building,
+					room: request.room,
+					firstName: request.firstName,
+					lastName: request.lastName,
+					startTime: request.startTime,
+					stopTime: request.stopTime,
+					date: new Date(each_day),
+					system: 1,
+					approved: 1
+				};
+
+				//get the room types
+				for(var type_index = 0; type_index < types.length; ++type_index)
+				{
+					if(types[type_index][4] == request.building + ' ' + request.room)
+					{
+						new_request.type = types[type_index][2];
+						new_request.capacity = types[type_index][3];
+					}
+				}
+
+				final_requests.push(new_request);
+			}
+		}
+	}
+
+	//increment to the next day
+	each_day.setDate(each_day.getDate() + 1);
+}
 
 
 /*
@@ -101,11 +157,17 @@ MongoClient.connect("mongodb://localhost:8080/<db-name>", function(err, db) {
 
 //create output file
 var outFile = fs.openSync('output.txt', 'w');
+var finalFile = fs.openSync('final_output.txt', 'w');
 
 for(each in requests_arr)
 {
 	fs.writeSync(outFile, JSON.stringify(requests_arr[each]) + '\n');
-	console.log(JSON.stringify(requests_arr[each]) + '\n');
+//	console.log(JSON.stringify(requests_arr[each]) + '\n');
+}
+
+for(each in final_requests)
+{
+	fs.writeSync(finalFile, JSON.stringify(final_requests[each]) + '\n');
 }
 
 //fs.writeSync(outFile, requests_arr.join('\n'));
