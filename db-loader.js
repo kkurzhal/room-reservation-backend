@@ -1,6 +1,6 @@
 var DEBUG = false;
 var fs = require('fs');
-//var mongo = require('mongodb').MongoClient;
+var mongo = require('mongodb').MongoClient;
 
 //using the mysql client noted at https://github.com/felixge/node-mysql.
 //var mysql = require('mysql');
@@ -145,14 +145,73 @@ while(!(each_day > end_date))
 }
 
 
-/*
+
 // Connect to the db
-MongoClient.connect("mongodb://localhost:8080/<db-name>", function(err, db) {
-  if(!err) {
-    console.log("We are connected");
-  }
-});
+mongo.connect("mongodb://localhost:27017/rooms", function(err, db) {
+	console.log(err);
+
+	if(!err)
+	{
+		var collection = db.collection('requests');
+
+		//remove the old documents
+		collection.remove({system: 1}, function(err, result){
+			var db_file = fs.openSync('db_remove.txt', 'w');
+			if(!err)
+				fs.writeSync(db_file, result);
+			else
+				fs.writeSync(db_file, err);
+
+			fs.closeSync(db_file);
+
+
+			var insert_requests = [];
+			var completed_list = [];
+
+			//get the number of expected groups of insertions, use ceil() to round upward
+			var total_inserts = Math.ceil(final_requests.length / 1000);
+			console.log('Total requests: ' + final_requests.length + '; Divided inserts: ' + total_inserts + '\n');
+/*			if(final_requests.length % 1000 > 0)
+			{
+				total_inserts = total_inserts;
+				console.log('With modulus: ' + total_inserts + '\n');
+			}
 */
+			//insert the new documents
+			for(index in final_requests)
+			{
+				//prepare a batch size of 1000
+				insert_requests.push(final_requests[index]);
+				
+				if(insert_requests.length == 1000 || index + 1 == final_requests.length)
+				{
+					collection.insert(insert_requests, function(err, result){
+						var db_file = fs.openSync('db_insert.txt', 'a');
+						if(!err)
+							fs.writeSync(db_file, result + '\n');
+						else
+							fs.writeSync(db_file, err + '\n');
+
+						//put the result into the list of completed requests
+						completed_list.push(result);
+
+						fs.writeSync(db_file, 'Completed: ' + completed_list.length + '; Total: ' + total_inserts + '\n');
+
+						fs.closeSync(db_file);
+
+						//close the connection if the number of completed insertion requests matches the number of expected insertion groups
+						if(completed_list.length == total_inserts)
+							db.close();
+					});
+
+					insert_requests = [];
+				}
+			}
+		});
+
+//		console.log("We are connected");
+	}
+});
 
 
 //create output file
