@@ -1,10 +1,9 @@
-var DEBUG = false;
 var fs = require('fs');
 var mongo = require('mongodb').MongoClient;
 
-//using the mysql client noted at https://github.com/felixge/node-mysql.
-//var mysql = require('mysql');
-//var sql = 'INSERT INTO <table-name> (<columns>) VALUES (<values>)';
+//maybe use the mysql client noted at https://github.com/felixge/node-mysql?
+
+//open up the file with the room data
 var fileData = fs.readFileSync('Room_Schedule.csv','utf8').replace(/\r/g, '').split('\n');
 var errorFile = fs.openSync('error.txt', 'w');
 
@@ -26,14 +25,12 @@ var i = 0;
 //read the file, split by newlines, throw out data description line and loop through each line
 for(line in fileData)
 {
-	//get the current line, remove all double quote characters with a regular expression, and then split into an array by commas
+	//get the current line, remove all double quote characters with a regular expression, and then split into an array by the "@"
+	//we use the "@" as an abitrary separator in order to permit possible double quotes that are supposed to be in the content
 	var line_array = fileData[line].replace(/\","/g, '@').replace(/\"/g, '').split('@');
-//	console.log(line_array);
 
 	if( (line_array[0] !== undefined && line_array[0].length !== 0) && (line_array[1] !== undefined && line_array[1].length !== 0) && (line_array[12] !== undefined && line_array[12].length !== 0) && (line_array[13] !== undefined && line_array[13].length !== 0) )
 	{
-	//	console.log(JSON.stringify(new_request));
-
 		//get each day
 		for(var index = 7; index < 12; ++index)
 		{
@@ -52,6 +49,7 @@ for(line in fileData)
 					day: line_array[index]
 				};
 
+				//remove duplicates
 				var duplicate = false;
 				for(var r_index = requests_arr.length - 1; r_index >= 0; --r_index)
 				{
@@ -64,25 +62,7 @@ for(line in fileData)
 				if(!duplicate)
 					requests_arr.push(new_request);
 			}
-			else
-			{
-				fs.writeSync(errorFile, 'inner on line ' + line + ' - ' + line_array[index] + '!=' + weekdays[index-6] + ' - ' + line_array + '\n');
-			}
 		}
-	}
-	else
-	{
-		fs.writeSync(errorFile, 'outer: ' + line_array + '\n');
-	}
-
-	if(DEBUG)
-	{
-		console.log(fileData[line]);
-
-		if(i > 5)
-			break;
-		else
-			i += 1;
 	}
 }
 
@@ -91,6 +71,7 @@ var final_requests = [];
 //get data to determine room types
 fileData = fs.readFileSync('room_types.csv','utf8').replace(/\r/g, '').split('\n');
 fileData.shift();
+
 var types = [];
 for(index in fileData)
 {
@@ -144,91 +125,40 @@ while(!(each_day > end_date))
 	each_day.setDate(each_day.getDate() + 1);
 }
 
+//empty the requests array and the types array
+requests_arr = [];
+types = [];
 
 
 // Connect to the db
 mongo.connect("mongodb://localhost:27017/rooms", function(err, db) {
-	console.log(err);
 
+	//continue if there is no error
 	if(!err)
 	{
 		var collection = db.collection('requests');
 
 		//remove the old documents
 		collection.remove({system: 1}, function(err, result){
-			var db_file = fs.openSync('db_remove.txt', 'w');
-			if(!err)
-				fs.writeSync(db_file, result);
-			else
-				fs.writeSync(db_file, err);
-
-			fs.closeSync(db_file);
-
-
-			var insert_requests = [];
-			var completed_list = [];
 
 			//get the number of expected groups of insertions, use ceil() to round upward
-			var total_inserts = Math.ceil(final_requests.length / 1000);
-			console.log('Total requests: ' + final_requests.length + '; Divided inserts: ' + total_inserts + '\n');
-/*			if(final_requests.length % 1000 > 0)
-			{
-				total_inserts = total_inserts;
-				console.log('With modulus: ' + total_inserts + '\n');
-			}
-*/
+			var total_inserts = 0;
+			console.log('Total requests: ' + final_requests.length);
+
 			//insert the new documents
 			for(index in final_requests)
 			{
-				//prepare a batch size of 1000
-				insert_requests.push(final_requests[index]);
-				
-				if(insert_requests.length == 1000 || index + 1 == final_requests.length)
-				{
-					collection.insert(insert_requests, function(err, result){
-						var db_file = fs.openSync('db_insert.txt', 'a');
-						if(!err)
-							fs.writeSync(db_file, result + '\n');
-						else
-							fs.writeSync(db_file, err + '\n');
+				collection.insert(final_requests[index], function(err, result){
+					total_inserts += 1;
 
-						//put the result into the list of completed requests
-						completed_list.push(result);
-
-						fs.writeSync(db_file, 'Completed: ' + completed_list.length + '; Total: ' + total_inserts + '\n');
-
-						fs.closeSync(db_file);
-
-						//close the connection if the number of completed insertion requests matches the number of expected insertion groups
-						if(completed_list.length == total_inserts)
-							db.close();
-					});
-
-					insert_requests = [];
-				}
+					//close the connection if the number of completed insertion requests matches the number of expected insertion groups
+					if(final_requests.length == total_inserts)
+					{
+						console.log('Closing the database!');
+						db.close();
+					}
+				});
 			}
 		});
-
-//		console.log("We are connected");
 	}
 });
-
-
-//create output file
-var outFile = fs.openSync('output.txt', 'w');
-var finalFile = fs.openSync('final_output.txt', 'w');
-
-for(each in requests_arr)
-{
-	fs.writeSync(outFile, JSON.stringify(requests_arr[each]) + '\n');
-//	console.log(JSON.stringify(requests_arr[each]) + '\n');
-}
-
-for(each in final_requests)
-{
-	fs.writeSync(finalFile, JSON.stringify(final_requests[each]) + '\n');
-}
-
-//fs.writeSync(outFile, requests_arr.join('\n'));
-fs.closeSync(outFile);
-fs.closeSync(errorFile);
