@@ -1,0 +1,15 @@
+Things that we still need for the API:
+
+- Get distinct room numbers (by the specified building)
+
+- Get room types (maybe by building name and number?)
+
+- Get unapproved requests
+
+- Get approved requests
+
+- Update requests to approved (using the  document ID)
+
+- Delete requests when denied approval
+
+- Store new requests
