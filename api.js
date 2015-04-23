@@ -1,10 +1,16 @@
 var express = require('express');
+//https://github.com/senchalabs/connect#middleware
+var bodyParser = require('body-parser');
 var app = express();
 
 //https://github.com/mongodb/node-mongodb-native
 //http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html
 var mongo = require('mongodb').MongoClient;
-port = 8019;
+var ObjectID = require('mongodb').ObjectID;
+port = 8080;
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded());
 
 //route definition
 app.get('/buildings', function(req, response) {  
@@ -17,9 +23,18 @@ app.get('/buildings', function(req, response) {
 			var collection = db.collection('requests');
               
  			collection.distinct('building', function(err, results){
-                response.json({results: results});
-                response.end();
+				if(err)
+					response.json({error: err});
+				else
+	                response.json({results: results});
+
+				response.end();
 			});
+		}
+		else
+		{
+			response.json({error: err});
+			response.end();
 		}
 	});
  });
@@ -37,9 +52,18 @@ app.get('/rooms/:building', function(req, response) {
 			var collection = db.collection('requests');
               
  			collection.distinct('room', {building: building}, function(err, results){
-                response.json({results: results});
+				if(err)
+					response.json({error: err});
+				else
+	                response.json({results: results});
+
                 response.end();
 			});
+		}
+		else
+		{
+			response.json({error: err});
+			response.end();
 		}
 	});
  });
@@ -59,13 +83,50 @@ app.get('/type/:building/:room', function(req, response) {
 			var collection = db.collection('requests');
               
  			collection.distinct('type', {building: building, room: room}, function(err, results){
-                response.json({results: results});
+				if(err)
+					response.json({error: err});
+				else
+	                response.json({results: results});
+
                 response.end();
 			});
+		}
+		else
+		{
+			response.json({error: err});
+			response.end();
 		}
 	});
  });
 
+
+//allows the client to get the requests by the date.
+app.get('/requestsByDate/:date', function(req, response) {  
+	// Connect to the db
+  	mongo.connect("mongodb://localhost:27017/rooms/", function(err, db) {
+			
+    	//continue if there is no error
+		if(!err)
+    	{
+			var date = new Date(req.params.date);
+			var collection = db.collection('requests');
+              
+ 			collection.find({date: date}).toArray(function(err, results){
+				if(err)
+					response.json({error: err});
+				else
+	                response.json({results: results});
+
+				response.end();
+			});
+		}
+		else
+		{
+			response.json({error: err});
+			response.end();
+		}
+	});
+ });
 
 //route definition
 app.get('/unapprovedRequests', function(req, response) {  
@@ -79,10 +140,19 @@ app.get('/unapprovedRequests', function(req, response) {
               
  			collection.find({approved: 0}).toArray(
 				function(err, results){
-	                response.json({results: results});
+					if(err)
+						response.json({error: err});
+					else
+			            response.json({results: results});
+
 	                response.end();
 				}
 			);
+		}
+		else
+		{
+			response.json({error: err});
+			response.end();
 		}
 	});
  });
@@ -101,10 +171,19 @@ app.get('/approvedRequests', function(req, response) {
               
  			collection.find({approved: 1}).toArray(
 				function(err, results){
-	                response.json({results: results});
+					if(err)
+						response.json({error: err});
+					else
+			            response.json({results: results});
+
 	                response.end();
 				}
 			);
+		}
+		else
+		{
+			response.json({error: err});
+			response.end();
 		}
 	});
  });
@@ -119,14 +198,23 @@ app.put('/approveRequest', function(req, response) {
     	//continue if there is no error
 		if(!err)
     	{
-			var id = req.body.id;
+			var id = new ObjectID(req.body.id);
 
 			var collection = db.collection('requests');
               
- 			collection.update({_id: id}, {approved: 1}, function(err, results){
-                response.json({results: results});
+ 			collection.update({_id: id}, {$set: {approved: 1}}, function(err, results){
+				if(err)
+					response.json({error: err});
+				else
+	                response.json({results: results});
+
                 response.end();
 			});
+		}
+		else
+		{
+			response.json({error: err});
+			response.end();
 		}
 	});
  });
@@ -141,14 +229,23 @@ app.delete('/disapproveRequest', function(req, response) {
     	//continue if there is no error
 		if(!err)
     	{
-			var id = req.body.id;
+			var id = new ObjectID(req.body.id);
 
 			var collection = db.collection('requests');
               
- 			collection.delete({_id: id}, function(err, results){
-                response.json({results: results});
+ 			collection.remove({_id: id}, function(err, results){
+				if(err)
+					response.json({error: err});
+				else
+	                response.json({results: results});
+
                 response.end();
 			});
+		}
+		else
+		{
+			response.json({error: err});
+			response.end();
 		}
 	});
  });
@@ -168,15 +265,25 @@ app.post('/makeRequest', function(req, response) {
             	lastName: req.body.lastName,
             	startTime: req.body.startTime,
             	stopTime: req.body.stopTime,
-            	date: req.body.date
+            	date: new Date(req.body.date),
+				approved: 0
             };
 
 			var collection = db.collection('requests');
               
  			collection.insert(newRequest, function(err, results){
-                response.json({results: results});
+				if(err)
+					response.json({error: err});
+				else
+	                response.json({results: results});
+
                 response.end();
 			});
+		}
+		else
+		{
+			response.json({error: err});
+			response.end();
 		}
 	});
  });
@@ -197,10 +304,19 @@ app.post('/validateUser/', function(req, response) {
               
  			collection.find({user: user, password: password}).toArray(
             	function(err, results){
-                	response.json({results: results});
+					if(err)
+						response.json({error: err});
+					else
+			            response.json({results: results});
+
                 	response.end();
 				}
             );
+		}
+		else
+		{
+			response.json({error: err});
+			response.end();
 		}
 	});
  });
