@@ -1,15 +1,15 @@
 Things that we still need for the API:
 
-- Get distinct room numbers (by the specified building) (GET REQUEST) ( collection.distinct(...) )
+/- Get distinct room numbers (by the specified building) (GET REQUEST) ( collection.distinct(...) )
 
-- Get room types (maybe by building name and number?) (GET REQUEST) ( collection.find(...) )
+/- Get room types (maybe by building name and number?) (GET REQUEST) ( collection.find(...) )
 
-- Get unapproved requests (GET REQUEST) ( collection.find(...) )
+/- Get unapproved requests (GET REQUEST) ( collection.find(...) )
 
-- Get approved requests (GET REQUEST) ( collection.find(...) )
+/- Get approved requests (GET REQUEST) ( collection.find(...) )
 
-- Update requests to approved (using the  document ID) (PUT REQUEST) ( collection.update(...) )
+/- Update requests to approved (using the  document ID) (PUT REQUEST) ( collection.update(...) )
 
-- Delete requests when denied approval (DELETE REQUEST) ( collection.delete(...) )
+/- Delete requests when denied approval (DELETE REQUEST) ( collection.delete(...) )
 
-- Store new requests (POST REQUEST) ( collection.insert(...) )
+/- Store new requests (POST REQUEST) ( collection.insert(...) )

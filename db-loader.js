@@ -91,6 +91,8 @@ while(!(each_day > end_date))
 		for(index in requests_arr)
 		{
 			var request = requests_arr[index];
+
+			//if the request day is equal to a given day of the week, then add to the requests array
 			if(request.day == weekdays[day])
 			{
 				var new_request = 
@@ -116,6 +118,7 @@ while(!(each_day > end_date))
 					}
 				}
 
+				//add the request to the requests array
 				final_requests.push(new_request);
 			}
 		}
