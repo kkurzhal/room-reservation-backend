@@ -29,6 +29,9 @@ app.get('/buildings', function(req, response) {
 	                response.json({results: results});
 
 				response.end();
+
+				console.log("Closing DB...");
+				db.close();
 			});
 		}
 		else
@@ -58,6 +61,9 @@ app.get('/rooms/:building', function(req, response) {
 	                response.json({results: results});
 
                 response.end();
+
+				console.log("Closing DB...");
+				db.close();
 			});
 		}
 		else
@@ -89,6 +95,9 @@ app.get('/type/:building/:room', function(req, response) {
 	                response.json({results: results});
 
                 response.end();
+
+				console.log("Closing DB...");
+				db.close();
 			});
 		}
 		else
@@ -118,6 +127,9 @@ app.get('/requestsByDate/:date', function(req, response) {
 	                response.json({results: results});
 
 				response.end();
+
+				console.log("Closing DB...");
+				db.close();
 			});
 		}
 		else
@@ -146,6 +158,9 @@ app.get('/unapprovedRequests', function(req, response) {
 			            response.json({results: results});
 
 	                response.end();
+
+					console.log("Closing DB...");
+					db.close();
 				}
 			);
 		}
@@ -177,6 +192,9 @@ app.get('/approvedRequests', function(req, response) {
 			            response.json({results: results});
 
 	                response.end();
+
+					console.log("Closing DB...");
+					db.close();
 				}
 			);
 		}
@@ -209,6 +227,9 @@ app.put('/approveRequest', function(req, response) {
 	                response.json({results: results});
 
                 response.end();
+
+				console.log("Closing DB...");
+				db.close();
 			});
 		}
 		else
@@ -240,6 +261,9 @@ app.delete('/disapproveRequest', function(req, response) {
 	                response.json({results: results});
 
                 response.end();
+
+				console.log("Closing DB...");
+				db.close();
 			});
 		}
 		else
@@ -278,6 +302,9 @@ app.post('/makeRequest', function(req, response) {
 	                response.json({results: results});
 
                 response.end();
+
+				console.log("Closing DB...");
+				db.close();
 			});
 		}
 		else
@@ -310,6 +337,9 @@ app.post('/validateUser/', function(req, response) {
 			            response.json({results: results});
 
                 	response.end();
+
+					console.log("Closing DB...");
+					db.close();
 				}
             );
 		}
