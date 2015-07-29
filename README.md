@@ -10,4 +10,4 @@ This repository is for the room reservation back-end code for CIS 445, Advanced 
 
 <h3>Getting Started</h3>
 To load the MongoDB database with the included data, you may run the following:<br><code>node db-loader.js</code>
-To start the server, run the following:<br><code>node api.js</code>
+<br>To start the server, run the following:<br><code>node api.js</code>
